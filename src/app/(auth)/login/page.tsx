@@ -8,15 +8,23 @@ import * as Yup from "yup";
 import { toast } from "react-toastify";
 import { AppDispatch, RootState } from "@/redux/store";
 import Link from "next/link";
-import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import Spinner from "@/uiverse/spinner/Spinner";
+import { useEffect } from "react";
 
 const Login = () => {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
-  
-  const { isLoading, isError } = useSelector((state: RootState) => state.auth);
+  const token = localStorage.getItem("token");
 
-  
+  const { isLoading, isError } = useSelector((state: RootState) => state.auth);
+  useEffect(() => {
+    if (token && token !== "undefined") {
+      router.push("/chat"); // Redirect to home if already logged in
+    }
+  }, [token]);
+  // console.log(isLoading,"isloading ")
+
+
   const validationSchema = Yup.object({
     email: Yup.string().email("Invalid email").required("Email is required"),
     password: Yup.string().min(6, "Password must be at least 6 characters").required("Password is required"),
@@ -34,7 +42,7 @@ const Login = () => {
             dispatch(loginUser(values)).then((result: any) => {
               if (result.payload && result.payload.token) {
                 toast.success("Login successful!");
-                router.push("/chat"); 
+                router.push("/chat");
               }
             });
           }}
@@ -59,13 +67,16 @@ const Login = () => {
 
               {isError && <p className="text-red-500 text-sm mb-2">{isError}</p>}
 
-              <button
-                type="submit"
-                className="w-full mt-6 py-3 text-center font-semibold text-white bg-[#ad5431] rounded-lg transition-all hover:bg-[#9c4230]  duration-300  shadow-lg"
-                disabled={isSubmitting || isLoading}
-              >
-                {isLoading ? <AiOutlineLoading3Quarters /> : "Login"}
-              </button>
+              {
+                isLoading ? (<div>
+                  <Spinner />
+                </div>) : (<button
+                  type="submit"
+                  className="w-full mt-6 py-3 text-center font-semibold text-white bg-[#ad5431] rounded-lg transition-all hover:bg-[#9c4230]  duration-300  shadow-lg"
+                  disabled={isSubmitting || isLoading}
+                >Login
+                </button>)
+              }
             </Form>
           )}
         </Formik>

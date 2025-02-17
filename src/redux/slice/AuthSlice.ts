@@ -35,6 +35,7 @@ const loginSlice = createSlice({
         state.isError = false
         state.isErrorMessage = ""
       })
+      
       .addCase(loginUser.fulfilled, (state, action: PayloadAction<any>) => {
         console.log(action.payload,"login dataaa sliceee")
         state.isLoading = false
@@ -72,6 +73,7 @@ const loginSlice = createSlice({
   },
 })
 
+
 export default loginSlice.reducer
 
 
@@ -99,12 +101,13 @@ export const registerUser = createAsyncThunk(
   "REGISTER/USER",
   async (user: Record<string, any>) => {
     try {
-      const response = await axios.post("https://node-js-wse4.onrender.com/user", user)
+      const response = await axios.post("https://socket-chat-backend-purr.onrender.com/api/auth/register", user)
       toast.success("Register user successfully", {
         position: "top-right",
         autoClose: 1000,
       })
-      return response.data.data
+      console.log(response.data,"register data")
+      return response.data
     } catch (error) {
       toast.error("Failed", {
         position: "top-right",
