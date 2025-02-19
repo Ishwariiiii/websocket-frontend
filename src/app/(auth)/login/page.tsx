@@ -19,7 +19,7 @@ const Login = () => {
   const { isLoading, isError } = useSelector((state: RootState) => state.auth);
   useEffect(() => {
     if (token && token !== "undefined") {
-      router.push("/chat"); // Redirect to home if already logged in
+      router.push("/chat");
     }
   }, [token]);
   // console.log(isLoading,"isloading ")
@@ -27,7 +27,7 @@ const Login = () => {
 
   const validationSchema = Yup.object({
     email: Yup.string().email("Invalid email").required("Email is required"),
-    password: Yup.string().min(6, "Password must be at least 6 characters").required("Password is required"),
+    password: Yup.string().min(4, "Password must be at least 6 characters").required("Password is required"),
   });
 
   return (

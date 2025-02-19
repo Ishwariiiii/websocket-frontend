@@ -35,9 +35,9 @@ const loginSlice = createSlice({
         state.isError = false
         state.isErrorMessage = ""
       })
-      
+
       .addCase(loginUser.fulfilled, (state, action: PayloadAction<any>) => {
-        console.log(action.payload,"login dataaa sliceee")
+        // console.log(action.payload,"login dataaa sliceee")
         state.isLoading = false
         state.isSuccess = true
         state.isError = false
@@ -49,10 +49,10 @@ const loginSlice = createSlice({
         state.isLoading = false
         state.isSuccess = false
         state.isError = true
-        state.isErrorMessage = action.payload 
+        state.isErrorMessage = action.payload
       })
 
-      .addCase(registerUser.pending, (state,action) => {
+      .addCase(registerUser.pending, (state, action) => {
         state.isLoading = true
         state.isSuccess = false
         state.isError = false
@@ -75,19 +75,21 @@ const loginSlice = createSlice({
 
 
 export default loginSlice.reducer
-
-
 export const loginUser = createAsyncThunk(
+
   "LOGIN/USER",
   async (user: Record<string, any>) => {
     try {
       const response = await axios.post("https://socket-chat-backend-purr.onrender.com/api/auth/login", user)
+
       toast.success("Login successfully", {
         position: "top-right",
         autoClose: 1000,
       });
-      console.log(response.data,"login data")
+
+      console.log(response.data, "login data")
       return response.data
+
     } catch (error) {
       toast.error("Invalid user", {
         position: "top-right",
@@ -106,7 +108,7 @@ export const registerUser = createAsyncThunk(
         position: "top-right",
         autoClose: 1000,
       })
-      console.log(response.data,"register data")
+      console.log(response.data, "register data")
       return response.data
     } catch (error) {
       toast.error("Failed", {
@@ -116,3 +118,4 @@ export const registerUser = createAsyncThunk(
     }
   }
 );
+

@@ -1,76 +1,119 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
-import { toast } from "react-toastify";
 
-interface messageState {
-
-    isLoading: boolean
-    isSuccess: boolean
-    isError: boolean
-    isErrorMessage: string
-    allMessage: Record<string, any>
+interface Message {
+  text: string;
+  sender: string;
+  timestamp?: string;
 }
 
-const initialState: messageState = {
-    isLoading: false,
-    isSuccess: false,
-    isError: false,
-    isErrorMessage: "",
-    allMessage: {}
-
+interface MessageState {
+  allMessage: Message[];
+  isLoading: boolean;
+  isError: boolean;
+  isSuccess: boolean;
+  isErrorMessage: string;
+  token: string | null;
 }
+
+const initialState: MessageState = {
+  allMessage: [],
+  isLoading: false,
+  isError: false,
+  isSuccess: false,
+  isErrorMessage: "",
+  token: null,
+};
+
+// Fetch all messages
+
 
 const messageSlice = createSlice({
-    name: "message",
-    initialState,
-    reducers: {},
-    extraReducers: (builder) => {
-        builder
-            .addCase(allMessage.pending, (state) => {
-                state.isLoading = true
-                state.isSuccess = false
-                state.isError = false
-                state.isErrorMessage = ""
-            })
+  name: "message",
+  initialState,
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      // Fetch Messages
+      .addCase(allMessage.pending, (state) => {
+        state.isLoading = true;
+        state.isSuccess = false;
+        state.isError = false;
+      })
+      .addCase(allMessage.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.allMessage = action.payload;
+        state.isError = false;
+      })
+      .addCase(allMessage.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = false;
+        state.isError = true;
+        state.isErrorMessage = action.payload as string || "An error occurred";
+      })
+      
+     
+      .addCase(sendMessage.pending, (state) => {
+        state.isLoading = true;
+        state.isSuccess = false;
+        state.isError = false;
+      })
+      .addCase(sendMessage.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.isError = false;
+        state.allMessage = [...state.allMessage, action.payload]; 
+      
+      })
+      .addCase(sendMessage.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = false;
+        state.isError = true;
+        state.isErrorMessage = action.payload as string || "Failed to send message";
+      });
+  },
+});
 
-            .addCase(allMessage.fulfilled, (state, action: PayloadAction<any>) => {
-                state.isLoading = false;
-                state.isSuccess = true;
-                state.isError = false;
-                state.allMessage = action.payload; // Store the fetched messages
-              })
-              .addCase(allMessage.rejected, (state, action: PayloadAction<any>) => {
-                state.isLoading = false;
-                state.isSuccess = false;
-                state.isError = true;
-                state.isErrorMessage = action.payload; // Store error message
-              });
-    }
-})
-export default messageSlice.reducer
+export default messageSlice.reducer;
 
 export const allMessage = createAsyncThunk(
-    "ALLMESSAGE",
-    async () => {
-        try {
-            const response = await axios.get("https://socket-chat-backend-purr.onrender.com/api/messages", {
-                headers: {
-                    'content-type': "application/json"
-                }
-            })
-            console.log(response, "message data")
-            return response.data
-
-            toast.success("Login successfully", {
-                position: "top-right",
-                autoClose: 1000,
-            });
-
-        } catch (error) {
-            toast.error("Invalid user", {
-                position: "top-right",
-                autoClose: 1000,
-            })
-        }
+  "messages/fetchAll",
+  async (_, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get("https://socket-chat-backend-purr.onrender.com/api/messages", {
+        headers: {
+          Authorization: token,
+          "Content-Type": "application/json",
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || "Failed to fetch messages");
     }
-)
+  }
+);
+
+// Send a message
+export const sendMessage = createAsyncThunk(
+  "messages/send",
+  async (message: string, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        "https://socket-chat-backend-purr.onrender.com/api/messages",
+        { text: message },
+        {
+          headers: {
+            Authorization: token,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || "Failed to send message");
+    }
+  }
+);
